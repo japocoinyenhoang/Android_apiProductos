@@ -4,15 +4,18 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +40,13 @@ public class MainActivity extends AppCompatActivity {
         btnEditar = findViewById(R.id.btbedit);
         btnBorrar = findViewById(R.id.btnBorrar);
         btnBuscar = findViewById(R.id.btnBuscar);
+
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addProducto("http://192.168.64.2//apiservice/insertar_producto.php");
+            }
+        });
     }
     private  void addProducto(String URL) {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
@@ -62,5 +72,8 @@ public class MainActivity extends AppCompatActivity {
                 return parametros;
             }
         };
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(stringRequest);
+
     }
 }
