@@ -14,8 +14,13 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,18 +29,20 @@ public class MainActivity extends AppCompatActivity {
     EditText etxtcodigo, etxtproducto, etxtprecio, etxtmarca;
     Button btnBuscar,btnAdd,btnEditar,btnBorrar;
 
+    RequestQueue requestQueue;
+
+    String baseURL = "http://10.1.2.10/apiservice/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Editables textos
         etxtcodigo = findViewById(R.id.etxtCodigo);
         etxtproducto = findViewById(R.id.etxnombre);
         etxtprecio = findViewById(R.id.etxtprecio);
         etxtmarca = findViewById(R.id.etxtmarca);
 
-        //botones
         btnAdd = findViewById(R.id.btnadd);
         btnEditar = findViewById(R.id.btbedit);
         btnBorrar = findViewById(R.id.btnBorrar);
@@ -44,9 +51,19 @@ public class MainActivity extends AppCompatActivity {
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                addProducto("http://192.168.64.2//apiservice/insertar_producto.php");
+                addProducto( baseURL +"insertar_producto.php");
             }
         });
+
+        btnBuscar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cleartxt();
+                buscarProducto( baseURL +"iproducto.php?codigo="+etxtcodigo.getText()+"");
+            }
+        });
+
+        btnEditar.setOnClickListener();
     }
     private  void addProducto(String URL) {
         StringRequest stringRequest = new StringRequest(Request.Method.POST, URL, new Response.Listener<String>() {
@@ -72,8 +89,41 @@ public class MainActivity extends AppCompatActivity {
                 return parametros;
             }
         };
-        RequestQueue requestQueue = Volley.newRequestQueue(this);
+        requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(stringRequest);
 
     }
+    private void buscarProducto(String URL) {
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
+            @Override
+            public void onResponse(JSONArray response) {
+                JSONObject jsonObject = null;
+                for (int i = 0; i < response.length(); i++) {
+                    try {
+                        jsonObject = response.getJSONObject(i);
+                        etxtproducto.setText(jsonObject.getString("producto"));
+                        etxtprecio.setText(jsonObject.getString("precio"));
+                        etxtmarca.setText(jsonObject.getString("marca"));
+                    } catch (JSONException e) {
+                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(getApplicationContext(), "error de conexión o código no encontrado", Toast.LENGTH_LONG).show();
+            }
+        });
+        requestQueue = Volley.newRequestQueue(this);
+        requestQueue.add(jsonArrayRequest);
+    }
+
+    private  void cleartxt(){
+        etxtproducto.setText("");
+        etxtprecio.setText("");
+        etxtmarca.setText("");
+    }
+
+
 }
